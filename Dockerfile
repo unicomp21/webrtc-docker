@@ -1,18 +1,13 @@
 FROM ubuntu:17.04
 MAINTAINER John Davis "jdavis@pcprogramming.com"
 RUN apt-get update
-RUN apt-get install -y git wget emacs python python3
+RUN apt-get install -y git wget emacs python python3 nano
 
 WORKDIR /tmp
 RUN git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git
 ENV PATH=/tmp/depot_tools:"$PATH"
 
 RUN apt-get install -y curl
-
-RUN mkdir /tmp/webrtc
-WORKDIR /tmp/webrtc
-RUN fetch --nohooks webrtc
-RUN gclient sync
 
 RUN apt-get install -y build-essential lsb-release sudo
 RUN apt-get install -y zip xvfb xutils-dev xsltproc xcompmgr x11-utils
@@ -37,7 +32,13 @@ RUN apt-get install -y g++-arm-linux-gnueabihf g++-5-multilib-arm-linux-gnueabih
 RUN apt-get install -y fonts-thai-tlwg fonts-ipafont fonts-indic elfutils cdbs
 RUN apt-get install -y binutils-aarch64-linux-gnu appmenu-gtk apache2-bin ant
 
+RUN mkdir /tmp/webrtc
+WORKDIR /tmp/webrtc
+RUN fetch --nohooks webrtc
+RUN gclient sync
+
 RUN /tmp/webrtc/src/build/install-build-deps.sh --no-chromeos-fonts --no-nacl --no-prompt
+
 WORKDIR /tmp/webrtc/src
 RUN gclient sync
 RUN gn gen out/Default
