@@ -1,13 +1,13 @@
-FROM ubuntu:17.04
+FROM ubuntu:16.04
+
 MAINTAINER John Davis "jdavis@pcprogramming.com"
 RUN apt-get update
-RUN apt-get install -y git wget emacs python python3 nano
+RUN apt-get install -y curl
+RUN apt-get install -y git wget emacs python
 
 WORKDIR /tmp
 RUN git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git
 ENV PATH=/tmp/depot_tools:"$PATH"
-
-RUN apt-get install -y curl
 
 RUN apt-get install -y build-essential lsb-release sudo
 RUN apt-get install -y zip xvfb xutils-dev xsltproc xcompmgr x11-utils
@@ -43,3 +43,18 @@ WORKDIR /tmp/webrtc/src
 RUN gclient sync
 RUN gn gen out/Default
 RUN ninja -C out/Default webrtc
+
+### ssh server
+RUN apt-get update && apt-get install -y openssh-server
+RUN mkdir /var/run/sshd
+RUN echo 'root:screencast' | chpasswd
+RUN sed -i 's/PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config
+
+# SSH login fix. Otherwise user is kicked off after login
+RUN sed 's@session\s*required\s*pam_loginuid.so@session optional pam_loginuid.so@g' -i /etc/pam.d/sshd
+
+ENV NOTVISIBLE "in users profile"
+RUN echo "export VISIBLE=now" >> /etc/profile
+
+EXPOSE 22
+CMD ["/usr/sbin/sshd", "-D"]
